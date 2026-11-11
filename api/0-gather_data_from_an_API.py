@@ -1,28 +1,25 @@
 #!/usr/bin/python3
-"""Exports all employees' TODO list data to a JSON file."""
-import json
+"""Gather data from an API for a given employee ID."""
 import requests
+import sys
 
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        sys.exit(1)
+
+    emp_id = sys.argv[1]
     base_url = "https://typicode.com"
-    users = requests.get("{}/users".format(base_url)).json()
-    todos = requests.get("{}/todos".format(base_url)).json()
 
-    all_data = {}
-    for user in users:
-        uid = user.get("id")
-        username = user.get("username")
-        user_tasks = [
-            {
-                "username": username,
-                "task": task.get("title"),
-                "completed": task.get("completed")
-            }
-            for task in todos if task.get("userId") == uid
-        ]
-        all_data[str(uid)] = user_tasks
+    user = requests.get(f"{base_url}/users/{emp_id}").json()
+    todos = requests.get(f"{base_url}/todos", params={"userId": emp_id}).json()
 
-    with open("todo_all_employees.json", mode="w", encoding="utf-8") as f:
-        json.dump(all_data, f)
+    emp_name = user.get("name")
+    done_tasks = [task.get("title") for task in todos if task.get("completed")]
+
+    print("Employee {} is done with tasks({}/{}):".format(
+        emp_name, len(done_tasks), len(todos)))
+
+    for title in done_tasks:
+        print("\t {}".format(title))
 
