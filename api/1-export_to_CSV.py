@@ -9,7 +9,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(1)
 
-    emp_id = sys.argv
+    emp_id = sys.argv[1]
     base_url = "https://typicode.com"
 
     user = requests.get(f"{base_url}/users/{emp_id}").json()
