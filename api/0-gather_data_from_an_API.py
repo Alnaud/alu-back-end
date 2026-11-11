@@ -9,7 +9,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     emp_id = sys.argv[1]
-    base_url = "https://typicode.com"
+    base_url = "https://jsonplaceholder.typicode.com"
+
 
     user = requests.get(f"{base_url}/users/{emp_id}").json()
     todos = requests.get(f"{base_url}/todos", params={"userId": emp_id}).json()
