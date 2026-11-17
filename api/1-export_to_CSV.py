@@ -1,29 +1,46 @@
 #!/usr/bin/python3
-"""Export employee tasks from an API to a CSV file."""
+"""Export an employee's TODO list to a CSV file."""
+
 import csv
-import requests
+import json
 import sys
+import urllib.parse
+import urllib.request
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit(1)
+API_URL = "https://jsonplaceholder.typicode.com"
 
-    emp_id = sys.argv[1]
-    base_url = "https://typicode.com"
 
-    user = requests.get(f"{base_url}/users/{emp_id}").json()
-    todos = requests.get(f"{base_url}/todos", params={"userId": emp_id}).json()
+def fetch_json(url):
+    """Fetch and decode a JSON response from the given URL."""
+    with urllib.request.urlopen(url) as response:
+        return json.loads(response.read().decode("utf-8"))
 
-    username = user.get("username")
-    filename = f"{emp_id}.csv"
 
-    with open(filename, mode="w", newline="", encoding="utf-8") as csv_file:
+def main():
+    """Write all TODO tasks for the employee ID argument to a CSV file."""
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: {} EMPLOYEE_ID".format(sys.argv[0]))
+
+    try:
+        employee_id = int(sys.argv[1])
+    except ValueError:
+        raise SystemExit("EMPLOYEE_ID must be an integer")
+
+    user = fetch_json("{}/users/{}".format(API_URL, employee_id))
+    query = urllib.parse.urlencode({"userId": employee_id})
+    todos = fetch_json("{}/todos?{}".format(API_URL, query))
+
+    with open("{}.csv".format(employee_id), "w", newline="") as csv_file:
         writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
         for task in todos:
             writer.writerow([
-                emp_id,
-                username,
+                employee_id,
+                user.get("username"),
                 task.get("completed"),
-                task.get("title")
+                task.get("title"),
             ])
+
+
+if __name__ == "__main__":
+    main()
